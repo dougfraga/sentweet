@@ -39,27 +39,32 @@ G_sorted.columns = ['names','degree']
 
 u = api.get_user(user_id = int(G_sorted['names'].iloc[0]))
 
-#G_tmp = nx.k_core(G, 10) #Exclude nodes with degree less than 10
+G_tmp = nx.k_core(G, 8) #Exclude nodes with degree less than 2
 
-partition = community_louvain.best_partition(G)
+partition = community_louvain.best_partition(G_tmp)
 #Turn partition into dataframe
 partition1 = pd.DataFrame([partition]).T
 partition1 = partition1.reset_index()
-partition1.columns = ['names','group']
-print(G_sorted)
+partition1.columns = ['names','Label']
 
 combined = pd.merge(G_sorted, partition1, how='left', left_on="names",right_on="names")
 
-pos = nx.spring_layout(G)
-f, ax = plt.subplots(figsize=(10, 10))
-plt.style.use('ggplot')
-#cc = nx.betweenness_centrality(G2)
-nodes = nx.draw_networkx_nodes(G, pos,
-                               cmap=plt.cm.Set1,
-                               node_color=combined['group'],
-                               alpha=0.8)
-nodes.set_edgecolor('k')
-nx.draw_networkx_labels(G, pos, font_size=8)
-nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.2)
-plt.savefig('twitterFollowers.png')
+combined = combined.rename(columns={"names": "ID"}) #I've found Gephi really likes when your node column is called 'Id'
+edges = nx.to_pandas_edgelist(G_tmp)
+nodes = combined['ID']
+edges.to_csv("edges.csv", index=False)
+combined.to_csv("nodes.csv", index=False)
+
+#pos = nx.spring_layout(G)
+#f, ax = plt.subplots(figsize=(10, 10))
+#plt.style.use('ggplot')
+##cc = nx.betweenness_centrality(G2)
+#nodes = nx.draw_networkx_nodes(G, pos,
+#                               cmap=plt.cm.Set1,
+#                               node_color=combined['group'],
+#                               alpha=0.8)
+#nodes.set_edgecolor('k')
+#nx.draw_networkx_labels(G, pos, font_size=8)
+#nx.draw_networkx_edges(G, pos, width=1.0, alpha=0.2)
+#plt.savefig('twitterFollowers.png')
 
